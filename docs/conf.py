@@ -1,48 +1,52 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../"))
+# Insert your package directory so autodoc can find your modules
+sys.path.insert(0, os.path.abspath(".."))
 
-with open("../lionagi/version.py") as v:
-    exec(v.read(), globals())
-
-global_version = globals().get("__version__")
-if global_version is None:
-    raise RuntimeError("Version could not be read from lionagi/version.py")
-
-# Configuration file for the Sphinx documentation builder.
-
-# -- Project information
-project = "lionagi"
-copyright = "2023, Haiyang Li"
+project = "LionAGI"
 author = "Haiyang Li"
+copyright = "2025"
+release = "0.7"
 
-version = global_version
-release = global_version
-
-# -- General configuration
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    "sphinx.ext.coverage",
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon',
-    'sphinx_rtd_theme',
-    'nbsphinx',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
 ]
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3/', None),
-    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-}
-
-intersphinx_disabled_domains = ['std']
 
 templates_path = ["_templates"]
+exclude_patterns = []
 
-# -- Options for HTML output
-html_title = project + " " + version
-html_theme = 'sphinx_rtd_theme'
+html_theme = "furo"
+html_static_path = ["_static"]
+html_title = "LionAGI Documentation"
 
-# -- Options for EPUB output
-epub_show_urls = 'footnote'
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "navigation_with_keys": True,
+    # Hide the “On This Page” panel:
+    "light_css_variables": {
+        "color-brand-primary": "#3070a0",
+        "color-brand-content": "#3070a0",
+        "font-size--body": "16px",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#5dafff",
+        "color-brand-content": "#5dafff",
+    },
+}
+pygments_style = "friendly"
+pygments_dark_style = "solarized-dark"
+
+html_css_files = [
+    "custom.css",  # loads after theme CSS
+]
+
+# If you want a logo, place 'logo.png' in _static/
+# html_logo = "_static/logo.png"
+
+# Example: Add any additional Sphinx config below
+# napoleon_use_param = True
+# todo_include_todos = True

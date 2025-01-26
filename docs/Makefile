@@ -1,20 +1,23 @@
-# Minimal makefile for Sphinx documentation
-#
+SHELL = /bin/sh
 
-# You can set these variables from the command line, and also
-# from the environment for the first two.
-SPHINXOPTS    ?=
-SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = source
-BUILDDIR      = build
+SPHINXBUILD   = sphinx-build
+SOURCEDIR     = .
+BUILDDIR      = _build
 
-# Put it first so that "make" without argument is like "make help".
+.PHONY: help clean html livehtml
+
 help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@echo "Please use 'make <target>' where <target> is one of:"
+	@echo "  html       to build the HTML documentation"
+	@echo "  clean      to remove build artifacts"
+	@echo "  livehtml   to run autobuild for live reloading"
 
-.PHONY: help Makefile
+clean:
+	rm -rf $(BUILDDIR)/*
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+html:
+	$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)"
+
+# Optional: live reload docs as you edit
+livehtml:
+	sphinx-autobuild $(SOURCEDIR) $(BUILDDIR)/html --port 8000

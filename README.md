@@ -1,109 +1,140 @@
-![PyPI - Version](https://img.shields.io/pypi/v/lionagi?labelColor=233476aa&color=231fc935) ![PyPI - Downloads](https://img.shields.io/pypi/dm/lionagi?color=blue)
+![PyPI - Version](https://img.shields.io/pypi/v/lionagi?labelColor=233476aa&color=231fc935)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/lionagi?color=blue)
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
+
+[Documentation](https://lion-agi.github.io/lionagi/) | [Discord](https://discord.gg/aqSJ2v46vu) | [PyPI](https://pypi.org/project/lionagi/) | [Roadmap](https://trello.com/b/3seomsrI/lionagi)
+
+# LION - Language InterOperable Network
+
+## An Intelligence Operating System
+
+LionAGI is a robust framework for orchestrating multi-step AI operations with precise control. Bring together multiple models, advanced ReAct reasoning, tool integrations, and custom validations in a single coherent pipeline.
+
+## Why LionAGI?
+
+- **Structured**: LLM interactions are validated and typed (via Pydantic).
+- **Expandable**: Integrate multiple providers (OpenAI, Anthropic, Perplexity, custom) with minimal friction.
+- **Controlled**: Built-in safety checks, concurrency strategies, and advanced multi-step flows—like ReAct with verbose outputs.
+- **Transparent**: Real-time logging, message introspection, and easy debugging of tool usage.
 
 
+## Installation
 
-[PyPI](https://pypi.org/project/lionagi/) | [Documentation](https://ocean-lion.com/Welcome) | [Discord](https://discord.gg/mzDD5JtYRp)
-
-  
-# LionAGI
-**Towards Automated General Intelligence**
-
-
-LionAGI is an **intelligent agent framework** tailored for **big data analysis** with advanced **machine learning** tools. Designed for data-centric, production-level projects. Lionagi allows flexible and rapid design of agentic workflow, customed for your own data. Lionagi `agents` can manage and direct other agents, can also use multiple different tools in parallel.
-
-
-**Note: latest stable is 0.0.209**
 ```
-pip install lionagi==0.0.209
-```
-
-  
-<img width="1002" alt="image" src="https://github.com/lion-agi/lionagi/assets/122793010/3fd75c2a-a9e9-4ab4-8ae9-f9cd71c69aec">
-
-
-#### Integrate any Advanced Model into your existing workflow.
-
-<img width="1100" alt="Screenshot 2024-02-14 at 8 54 01 AM" src="https://github.com/lion-agi/lionagi/assets/122793010/cfbc403c-cece-49e7-bc3a-015e035d3607">
-
-
-
-
-### Install LionAGI with pip:
-
-```bash
 pip install lionagi
 ```
-Download the `.env_template` file, input your appropriate `API_KEY`, save the file, rename as `.env` and put in your project's root directory. 
-by default we use `OPENAI_API_KEY`.
 
+Dependencies:
+	•	aiocahce
+  •	aiohttp
+	•	jinja2
+	•	pandas
+	•	pillow
+  •	pydantic
+	•	python-dotenv
+  •	tiktoken
 
-### Quick Start
-
-The following example shows how to use LionAGI's `Session` object to interact with `gpt-4-turbo` model:
-
+## Quick Start
 ```python
+from lionagi import Branch, iModel
 
-# define system messages, context and user instruction
-system = "You are a helpful assistant designed to perform calculations."
-instruction = {"Addition":"Add the two numbers together i.e. x+y"}
-context = {"x": 10, "y": 5}
-```
+# Pick a model
+gpt4o = iModel(provider="openai", model="gpt-4o")
 
-```python
-# in interactive environment (.ipynb for example)
-import lionagi as li
-
-calculator = li.Session(system=system)
-result = await calculator.chat(
-  instruction=instruction, context=context, model="gpt-4-turbo-preview"
+# Create a Branch (conversation context)
+hunter = Branch(
+  system="you are a hilarious dragon hunter who responds in 10 words rhymes.",
+  chat_model=gpt4o,
 )
 
-print(f"Calculation Result: {result}")
+# Communicate asynchronously
+response = await hunter.communicate("I am a dragon")
+print(response)
 ```
+
+```
+You claim to be a dragon, oh what a braggin'!
+```
+### Structured Responses
+
+Use Pydantic to keep outputs structured:
 
 ```python
-# or otherwise, you can use
-import asyncio
-from dotenv import load_dotenv
+from pydantic import BaseModel
 
-load_dotenv()
+class Joke(BaseModel):
+    joke: str
 
-import lionagi as li
-
-async def main():
-    calculator = li.Session(system=system)
-    result = await calculator.chat(
-      instruction=instruction, context=context, model="gpt-4-turbo-preview"
-    )
-    print(f"Calculation Result: {result}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
+res = await hunter.communicate(
+    "Tell me a short dragon joke",
+    response_format=Joke
+)
+print(type(response))
+print(response.joke)
+```
+```
+<class '__main__.Joke'>
+With fiery claws, dragons hide their laughter flaws!
 ```
 
-Visit our notebooks for examples. 
+### ReAct and Tools
 
-LionAGI is designed to be `asynchronous` only, please check python official documentation on how `async` work: [here](https://docs.python.org/3/library/asyncio.html)
+LionAGI supports advanced multi-step reasoning with ReAct. Tools let the LLM invoke external actions:
 
----
+```python
+from lionagi.tools.types import ReaderTool
 
-**Notice**: 
-* calling API with maximum throughput over large set of data with advanced models i.e. gpt-4 can get **EXPENSIVE IN JUST SECONDS**,
-* please know what you are doing, and check the usage on OpenAI regularly
-* default rate limits are set to be 1,000 requests, 100,000 tokens per miniute, please check the [OpenAI usage limit documentation](https://platform.openai.com/docs/guides/rate-limits?context=tier-free) you can modify token rate parameters to fit different use cases.
-* if you would like to build from source, please download the [latest release](https://github.com/lion-agi/lionagi/releases),  **main is under development and will be changed without notice**
-  
-**we are undergoing major refocus of this package and depreciated plenty features, roadmap is agent only in future**
+branch = Branch(chat_model=gpt4o, tools=ReaderTool)
+result = await branch.ReAct(
+    instruct={
+      "instruction": "Summarize my PDF and compare with relevant papers.",
+      "context": {"paper_file_path": "/path/to/paper.pdf"},
+    },
+    extension_allowed=True,     # allow multi-round expansions
+    max_extensions=5,
+    verbose=True,      # see step-by-step chain-of-thought
+)
+print(result)
+```
 
-### Community
+The LLM can now open the PDF, read in slices, fetch references, and produce a final structured summary.
 
-We encourage contributions to LionAGI and invite you to enrich its features and capabilities. Engage with us and other community members [Join Our Discord](https://discord.gg/7RGWqpSxze)
+### Observability & Debugging
+- Inspect messages:
+```python
+df = branch.to_df()
+print(df.tail())
+```
+- Action logs show each tool call, arguments, and outcomes.
+- Verbose ReAct provides chain-of-thought analysis (helpful for debugging multi-step flows).
+
+### Example: Multi-Model Orchestration
+
+```python
+from lionagi import Branch, iModel
+
+gpt4o = iModel(provider="openai", model="gpt-4o")
+sonnet = iModel(
+  provider="anthropic",
+  model="claude-3-5-sonnet-20241022",
+  max_tokens=1000,                    # max_tokens is required for anthropic models
+)
+
+branch = Branch(chat_model=gpt4o)
+# Switch mid-flow
+analysis = await branch.communicate("Analyze these stats", imodel=sonnet)
+```
+
+Seamlessly route to different models in the same workflow.
+
+## Community & Contributing
+
+We welcome issues, ideas, and pull requests:
+- Discord: Join to chat or get help
+- Issues / PRs: GitHub
 
 ### Citation
-
-When referencing LionAGI in your projects or research, please cite:
-
-```bibtex
+```
 @software{Li_LionAGI_2023,
   author = {Haiyang Li},
   month = {12},
@@ -113,7 +144,5 @@ When referencing LionAGI in your projects or research, please cite:
 }
 ```
 
-
-### Requirements
-Python 3.9 or higher. 
-
+**🦁 LionAGI**
+> Because real AI orchestration demands more than a single prompt. Try it out and discover the next evolution in structured, multi-model, safe AI.
